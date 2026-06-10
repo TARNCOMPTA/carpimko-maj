@@ -44,6 +44,11 @@ db.exec(`
     nb_docs    INTEGER DEFAULT 0,
     lance_le   TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    cle    TEXT PRIMARY KEY,
+    valeur TEXT
+  );
 `);
 
 // ---- Migration : colonne date_doc (date du document, format ISO YYYY-MM-DD) --
@@ -63,11 +68,29 @@ if (!colonnes.includes('date_doc')) {
   }
 }
 
+// ---- Migration : colonne dossier (destination par client) ----
+const colClients = db.prepare('PRAGMA table_info(clients)').all().map((c) => c.name);
+if (!colClients.includes('dossier')) {
+  db.exec('ALTER TABLE clients ADD COLUMN dossier TEXT');
+}
+
+// ---- Reglages (cle/valeur) ----
+export function getSetting(cle, defaut = null) {
+  const r = db.prepare('SELECT valeur FROM settings WHERE cle = ?').get(cle);
+  return r ? r.valeur : defaut;
+}
+export function setSetting(cle, valeur) {
+  db.prepare(`
+    INSERT INTO settings (cle, valeur) VALUES (?, ?)
+    ON CONFLICT(cle) DO UPDATE SET valeur = excluded.valeur
+  `).run(cle, valeur ?? null);
+}
+
 // ---- Clients -------------------------------------------------------------
 
 export function listClients() {
   const rows = db.prepare(`
-    SELECT c.id, c.nom, c.login, c.notes, c.created_at, c.updated_at,
+    SELECT c.id, c.nom, c.login, c.notes, c.dossier, c.created_at, c.updated_at,
            (SELECT COUNT(*) FROM documents d WHERE d.client_id = c.id) AS nb_docs,
            (SELECT lance_le FROM runs r WHERE r.client_id = c.id ORDER BY r.lance_le DESC, r.id DESC LIMIT 1) AS dernier_run,
            (SELECT statut   FROM runs r WHERE r.client_id = c.id ORDER BY r.lance_le DESC, r.id DESC LIMIT 1) AS dernier_statut,
@@ -98,26 +121,29 @@ export function getClient(id) {
 export function getClientCredentials(id) {
   const c = getClient(id);
   if (!c) return null;
-  return { id: c.id, nom: c.nom, login: c.login, password: decrypt(c.password_enc) };
+  return { id: c.id, nom: c.nom, login: c.login, password: decrypt(c.password_enc), dossier: c.dossier || null };
 }
 
-export function createClient({ nom, login, password, notes }) {
+export function createClient({ nom, login, password, notes, dossier }) {
   const info = db.prepare(`
-    INSERT INTO clients (nom, login, password_enc, notes)
-    VALUES (?, ?, ?, ?)
-  `).run(nom, login, encrypt(password), notes ?? null);
+    INSERT INTO clients (nom, login, password_enc, notes, dossier)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(nom, login, encrypt(password), notes ?? null, dossier ?? null);
   return getClient(info.lastInsertRowid);
 }
 
-export function updateClient(id, { nom, login, password, notes }) {
+export function updateClient(id, { nom, login, password, notes, dossier }) {
   const c = getClient(id);
   if (!c) return null;
   const password_enc = password ? encrypt(password) : c.password_enc;
   db.prepare(`
     UPDATE clients
-    SET nom = ?, login = ?, password_enc = ?, notes = ?, updated_at = datetime('now')
+    SET nom = ?, login = ?, password_enc = ?, notes = ?, dossier = ?, updated_at = datetime('now')
     WHERE id = ?
-  `).run(nom ?? c.nom, login ?? c.login, password_enc, notes ?? c.notes, id);
+  `).run(
+    nom ?? c.nom, login ?? c.login, password_enc,
+    notes ?? c.notes, dossier !== undefined ? dossier : c.dossier, id
+  );
   return getClient(id);
 }
 

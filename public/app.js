@@ -126,6 +126,45 @@ $('#table-clients').addEventListener('click', async (e) => {
   }
 });
 
+// ---- Dossier de destination ----------------------------------------------
+
+// Ouvre la boite de selection de dossier Windows ; renvoie le chemin ou null.
+async function choisirDossier() {
+  const r = await api('/api/pick-folder', { method: 'POST' });
+  return r.folder || null;
+}
+
+async function chargerDestination() {
+  try {
+    const s = await api('/api/settings');
+    $('#dest-global').value = s.destinationFolder || '';
+  } catch { /* ignore */ }
+}
+
+$('#pick-global').addEventListener('click', async () => {
+  try {
+    const f = await choisirDossier();
+    if (f) $('#dest-global').value = f;
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+$('#save-global').addEventListener('click', async () => {
+  try {
+    await api('/api/settings', { method: 'POST', body: JSON.stringify({ destinationFolder: $('#dest-global').value.trim() }) });
+    toast('Dossier de destination enregistré.', 'ok');
+  } catch (err) { toast(err.message, 'err'); }
+});
+
+// Boutons « Parcourir… » dans les formulaires (data-pick = nom du champ)
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-pick]');
+  if (!btn) return;
+  try {
+    const f = await choisirDossier();
+    if (f) { const champ = form[btn.dataset.pick]; if (champ) champ.value = f; }
+  } catch (err) { toast(err.message, 'err'); }
+});
+
 // ---- Formulaire ----------------------------------------------------------
 
 const form = $('#form-client');
@@ -139,6 +178,7 @@ async function remplirFormulaire(id) {
   form.login.value = c.login;
   form.password.value = '';
   form.notes.value = c.notes || '';
+  form.dossier.value = c.dossier || '';
   $('#btn-submit').textContent = 'Mettre à jour';
   $('#btn-cancel').hidden = false;
   form.scrollIntoView({ behavior: 'smooth' });
@@ -160,6 +200,7 @@ form.addEventListener('submit', async (e) => {
     login: form.login.value.trim(),
     password: form.password.value,
     notes: form.notes.value.trim(),
+    dossier: form.dossier.value.trim(),
   };
   const id = form.id.value;
   try {
@@ -530,4 +571,5 @@ function attendreRedemarrage() {
 
 rafraichir();
 verifierMaj();
+chargerDestination();
 setInterval(chargerRuns, 5000); // suit l'avancement des runs

@@ -61,11 +61,31 @@
         <label class="full">Notes (optionnel)
           <input name="notes" placeholder="N° adhérent, remarques…" />
         </label>
+        <label class="full">Dossier d'enregistrement de ce client (optionnel)
+          <span class="champ-dossier">
+            <input name="dossier" placeholder="Vide = utilise le dossier global ci-dessous" />
+            <button type="button" class="btn" data-pick="dossier">Parcourir…</button>
+          </span>
+        </label>
         <div class="form-actions full">
           <button type="submit" class="btn primary" id="btn-submit">Enregistrer</button>
           <button type="button" class="btn" id="btn-cancel" hidden>Annuler</button>
         </div>
       </form>
+    </section>
+
+    <section class="panel">
+      <h2>Dossier d'enregistrement</h2>
+      <p class="aide">
+        Où ranger les appels de cotisations téléchargés. Un <strong>sous-dossier par client</strong> y est créé
+        automatiquement. Laisser vide = dossier interne de l'application. Un client peut aussi avoir son
+        propre dossier (dans sa fiche).
+      </p>
+      <div class="champ-dossier">
+        <input id="dest-global" placeholder="Ex : D:\Clients\Cotisations  (vide = dossier interne)" />
+        <button type="button" class="btn" id="pick-global">Parcourir…</button>
+        <button type="button" class="btn primary" id="save-global">Enregistrer</button>
+      </div>
     </section>
 
     <section class="panel">

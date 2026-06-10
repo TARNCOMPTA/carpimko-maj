@@ -93,7 +93,7 @@ async function extraireDocuments(page) {
 /**
  * Recupere les appels de cotisations d'un client (espace "Affilie").
  * @param {{id:number, nom:string, login:string, password:string}} client
- * @param {{onLog?: (msg:string)=>void, tousDocuments?: boolean}} [opts]
+ * @param {{onLog?: (msg:string)=>void, tousDocuments?: boolean, baseFolder?: string}} [opts]
  */
 export async function scrapeClient(client, opts = {}) {
   const log = (m) => {
@@ -107,8 +107,20 @@ export async function scrapeClient(client, opts = {}) {
   // Tous les documents, ou seulement les appels de cotisations (defaut).
   const tousDocuments = opts.tousDocuments ?? TOUS_DOCUMENTS_DEFAUT;
 
-  const clientDir = resolve(DOWNLOADS_DIR, sanitize(`${client.id}_${client.nom}`));
+  // Dossier de destination, par ordre de priorite :
+  //   1. dossier propre au client (client.dossier)
+  //   2. dossier global choisi (opts.baseFolder) -> sous-dossier au nom du client
+  //   3. dossier par defaut de l'application (downloads/<id>_<nom>)
+  let clientDir;
+  if (client.dossier && client.dossier.trim()) {
+    clientDir = client.dossier.trim();
+  } else if (opts.baseFolder && opts.baseFolder.trim()) {
+    clientDir = resolve(opts.baseFolder.trim(), sanitize(client.nom));
+  } else {
+    clientDir = resolve(DOWNLOADS_DIR, sanitize(`${client.id}_${client.nom}`));
+  }
   mkdirSync(clientDir, { recursive: true });
+  log(`Destination : ${clientDir}`);
 
   const browser = await chromium.launch({ headless });
   const context = await browser.newContext({ acceptDownloads: true });

@@ -153,6 +153,15 @@ main {
 }
 .form-actions { display: flex; gap: 10px; }
 
+.champ-dossier { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.champ-dossier input {
+  flex: 1; min-width: 200px;
+  padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  font-size: .92rem; color: var(--ink); background: var(--panel-2);
+  font-family: "Consolas", monospace;
+}
+.champ-dossier input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+
 /* ============================================================
    Boutons
    ============================================================ */
