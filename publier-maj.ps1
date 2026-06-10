@@ -3,7 +3,8 @@
 param(
   [Parameter(Mandatory = $true)][string]$Version,
   [string]$Notes = "",
-  [switch]$DryRun
+  [switch]$DryRun,
+  [switch]$NoPush
 )
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -62,6 +63,10 @@ if ($DryRun) {
 }
 git add -A
 git commit -m "Mise a jour v$Version" | Out-Null
+if ($NoPush) {
+  Write-Host "[NoPush] Commit fait localement. Lance le push toi-meme :  git push -u origin main"
+  return
+}
 git push origin main
 Write-Host ""
 Write-Host "============================================================"
