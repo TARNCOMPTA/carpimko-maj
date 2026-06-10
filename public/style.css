@@ -295,6 +295,31 @@ dialog h3 { margin: 0 0 18px; font-size: 1.05rem; }
 #docs-liste .lib { font-size: .9rem; font-weight: 600; }
 #docs-liste .date { font-size: .75rem; color: var(--muted); }
 
+/* Declaration de revenu */
+#dialog-revenu { min-width: 560px; }
+.form-revenu { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.form-revenu label { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+.form-revenu input[type="number"] {
+  padding: 10px 13px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  font-size: 1.05rem; color: var(--ink); background: var(--panel-2); max-width: 240px;
+}
+.form-revenu input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.check-inline { flex-direction: row !important; align-items: center; gap: 8px; color: var(--ink-soft) !important; }
+.check-inline input { width: 16px; height: 16px; accent-color: var(--accent); }
+.sep-h { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+.aide-valid { color: var(--ink); font-weight: 600; }
+#revenu-img { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 14px; }
+.confirm-envoi {
+  background: linear-gradient(135deg, #c2410c, #ea580c); color: #fff; border: none;
+  font-weight: 700; padding: 11px 18px;
+  box-shadow: 0 4px 14px color-mix(in srgb, #ea580c 40%, transparent);
+}
+.confirm-envoi:hover { filter: brightness(1.08); color: #fff; }
+#revenu-resultat { margin-top: 14px; }
+#revenu-resultat img { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 10px; }
+.revenu-ok { color: var(--ok); font-weight: 700; }
+.revenu-warn { color: var(--warn); font-weight: 700; }
+
 /* Export */
 .export-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .check-all { font-size: .85rem; font-weight: 600; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; cursor: pointer; }

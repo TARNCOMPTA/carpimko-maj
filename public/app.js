@@ -50,6 +50,7 @@ async function chargerClients() {
       <td><div class="row-actions">
         <button class="btn small primary" data-act="scrape" data-id="${c.id}">Récupérer</button>
         <button class="btn small" data-act="docs" data-id="${c.id}" data-nom="${esc(c.nom)}">Documents</button>
+        <button class="btn small" data-act="revenu" data-id="${c.id}" data-nom="${esc(c.nom)}">Déclarer revenu</button>
         <button class="btn small" data-act="edit" data-id="${c.id}">Modifier</button>
         <button class="btn small danger" data-act="del" data-id="${c.id}">Suppr.</button>
       </div></td>`;
@@ -115,6 +116,8 @@ $('#table-clients').addEventListener('click', async (e) => {
     }
   } else if (act === 'docs') {
     ouvrirDocs(id, btn.dataset.nom);
+  } else if (act === 'revenu') {
+    ouvrirRevenu(id, btn.dataset.nom);
   } else if (act === 'edit') {
     remplirFormulaire(id);
   } else if (act === 'del') {
@@ -452,6 +455,80 @@ $('#btn-export-go').addEventListener('click', async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Télécharger le ZIP';
+  }
+});
+
+// ---- Déclaration de revenu estimé ----------------------------------------
+
+const dialogRevenu = $('#dialog-revenu');
+let revenuClient = null;
+
+function ouvrirRevenu(id, nom) {
+  revenuClient = { id, nom };
+  $('#revenu-titre').textContent = `Déclarer un revenu estimé — ${nom}`;
+  $('#revenu-montant').value = '';
+  $('#revenu-negatif').checked = false;
+  $('#revenu-zone-apercu').hidden = true;
+  $('#revenu-resultat').hidden = true;
+  $('#revenu-resultat').innerHTML = '';
+  $('#revenu-img').src = '';
+  dialogRevenu.showModal();
+}
+
+$('#revenu-fermer').addEventListener('click', () => dialogRevenu.close());
+
+$('#revenu-apercu').addEventListener('click', async () => {
+  const montant = $('#revenu-montant').value.trim();
+  if (montant === '' || Number(montant) < 0 || !Number.isInteger(Number(montant))) {
+    return toast('Saisis un montant entier (euros, sans centimes).', 'err');
+  }
+  const btn = $('#revenu-apercu');
+  btn.disabled = true; btn.textContent = 'Génération…';
+  try {
+    const r = await fetch(`/api/clients/${revenuClient.id}/revenu/apercu`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ montant: Number(montant), negatif: $('#revenu-negatif').checked }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || data.error || `Erreur ${r.status}`);
+    $('#revenu-img').src = `/api/revenu/capture/${data.capture}?t=${Date.now()}`;
+    $('#revenu-zone-apercu').hidden = false;
+    $('#revenu-resultat').hidden = true;
+    toast('Aperçu généré (rien envoyé).', 'ok');
+  } catch (err) {
+    toast(err.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Générer l\'aperçu';
+  }
+});
+
+$('#revenu-envoyer').addEventListener('click', async () => {
+  const montant = Number($('#revenu-montant').value.trim());
+  const negatif = $('#revenu-negatif').checked;
+  if (!confirm(
+    `⚠️ ENVOI RÉEL à CARPIMKO\n\nClient : ${revenuClient.nom}\nRevenu estimé déclaré : ${montant} €` +
+    (negatif ? ' (négatifs)' : '') +
+    '\n\nCela modifiera les cotisations appelées du client. Confirmer l\'envoi ?'
+  )) return;
+  const btn = $('#revenu-envoyer');
+  btn.disabled = true; btn.textContent = 'Envoi en cours…';
+  try {
+    const r = await fetch(`/api/clients/${revenuClient.id}/revenu/envoyer`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ montant, negatif }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || data.error || `Erreur ${r.status}`);
+    $('#revenu-zone-apercu').hidden = true;
+    const cls = data.succesDetecte ? 'revenu-ok' : 'revenu-warn';
+    const msg = data.succesDetecte ? '✅ Demande envoyée et confirmée par CARPIMKO.' : '⚠️ Demande envoyée — vérifie la capture de confirmation ci-dessous.';
+    $('#revenu-resultat').innerHTML = `<p class="${cls}">${msg}</p><img src="/api/revenu/capture/${data.capture}?t=${Date.now()}" alt="Confirmation" />`;
+    $('#revenu-resultat').hidden = false;
+    toast('Déclaration envoyée.', 'ok');
+  } catch (err) {
+    toast(err.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Confirmer et envoyer à CARPIMKO';
   }
 });
 

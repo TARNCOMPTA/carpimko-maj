@@ -155,6 +155,36 @@
     </div>
   </dialog>
 
+  <!-- Fenetre declaration de revenu estime -->
+  <dialog id="dialog-revenu">
+    <h3 id="revenu-titre">Déclarer un revenu estimé</h3>
+    <p class="aide">
+      « Anticiper une baisse ou une hausse de revenus ». Le robot remplit le formulaire CARPIMKO et
+      t'en montre un <strong>aperçu</strong>. <strong>Rien n'est envoyé tant que tu n'as pas confirmé.</strong>
+    </p>
+    <div class="form-revenu">
+      <label>Montant des revenus estimés (€, sans centimes)
+        <input type="number" id="revenu-montant" min="0" step="1" placeholder="Ex : 42000" />
+      </label>
+      <label class="check-inline"><input type="checkbox" id="revenu-negatif" /> Revenus estimés négatifs</label>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn primary" id="revenu-apercu">Générer l'aperçu</button>
+      <button type="button" class="btn" id="revenu-fermer">Fermer</button>
+    </div>
+
+    <div id="revenu-zone-apercu" hidden>
+      <hr class="sep-h" />
+      <p class="aide aide-valid">✔️ Vérifie le formulaire ci-dessous (montant, identité). Si tout est correct, confirme l'envoi.</p>
+      <img id="revenu-img" alt="Aperçu du formulaire CARPIMKO" />
+      <div class="form-actions">
+        <button type="button" class="btn confirm-envoi" id="revenu-envoyer">✓ Confirmer et envoyer à CARPIMKO</button>
+      </div>
+    </div>
+
+    <div id="revenu-resultat" hidden></div>
+  </dialog>
+
   <!-- Fenetre documents d'un client -->
   <dialog id="dialog-docs">
     <h3 id="docs-titre">Documents</h3>
