@@ -1,0 +1,17 @@
+{
+  "name": "carpimko-scraper",
+  "version": "1.0.0",
+  "description": "Site interne pour recuperer les appels de cotisations CARPIMKO de chaque client via Playwright",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jszip": "^3.10.1",
+    "playwright": "^1.50.1"
+  }
+}
