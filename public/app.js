@@ -96,7 +96,7 @@ async function lancerScrape(id, force) {
     toast(data.error || data.message || `Erreur ${res.status}`, 'err');
     return;
   }
-  toast("Récupération lancée. Suis l'avancement dans l'historique.", 'ok');
+  toast("Récupération lancée. Suis l'avancement dans le panneau en haut de page.", 'ok');
 }
 
 // Delegation de clic sur les boutons d'action
@@ -592,6 +592,67 @@ $('#btn-scrape-all').addEventListener('click', async (e) => {
   }
 });
 
+// ---- Suivi d'avancement ----------------------------------------------------
+
+let progressVisible = false;   // un suivi est affiche
+let progressMasque = false;    // l'utilisateur a masque le bilan termine
+let dernierDemarrage = null;   // pour re-afficher quand une nouvelle recuperation demarre
+
+async function suivreProgression() {
+  let p;
+  try {
+    p = await api('/api/progress');
+  } catch { return; }
+
+  // Nouvelle recuperation -> on re-affiche le panneau
+  if (p.demarre_le && p.demarre_le !== dernierDemarrage) {
+    dernierDemarrage = p.demarre_le;
+    progressMasque = false;
+  }
+
+  const aMontrer = (p.actif || (p.fini_le && p.resultats.length > 0)) && !progressMasque;
+  $('#panel-progress').hidden = !aMontrer;
+  progressVisible = aMontrer;
+  if (!aMontrer) return;
+
+  const pct = p.total > 0 ? Math.round((p.fait / p.total) * 100) : 0;
+  $('#progress-fill').style.width = pct + '%';
+  $('#progress-compteur').textContent = `${p.fait} / ${p.total}`;
+
+  if (p.actif) {
+    $('#progress-titre').textContent = 'Récupération en cours…';
+    $('#progress-courant').textContent = p.courant ? `⏳ Client en cours : ${p.courant}` : '';
+    $('#progress-masquer').hidden = true;
+  } else {
+    $('#progress-titre').textContent = 'Récupération terminée';
+    $('#progress-courant').textContent = '';
+    $('#progress-masquer').hidden = false;
+  }
+
+  // Bilan : compte des succes / echecs + liste des echecs
+  const ok = p.resultats.filter((r) => r.ok);
+  const ko = p.resultats.filter((r) => !r.ok);
+  let bilan = `<span class="badge ok">✔ ${ok.length} succès</span> `;
+  if (ko.length) {
+    bilan += `<span class="badge err">✘ ${ko.length} échec(s)</span>`;
+    bilan += '<ul class="progress-echecs">' +
+      ko.map((r) => `<li><strong>${esc(r.nom)}</strong> — ${esc(r.message)}</li>`).join('') +
+      '</ul>';
+  }
+  $('#progress-bilan').innerHTML = bilan;
+
+  // Journal (auto-scroll en bas si l'utilisateur n'a pas remonte)
+  const log = $('#progress-log');
+  const enBas = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+  log.textContent = p.logs.join('\n');
+  if (enBas) log.scrollTop = log.scrollHeight;
+}
+
+$('#progress-masquer').addEventListener('click', () => {
+  progressMasque = true;
+  $('#panel-progress').hidden = true;
+});
+
 // ---- Rafraichissement ----------------------------------------------------
 
 async function rafraichir() {
@@ -650,3 +711,5 @@ rafraichir();
 verifierMaj();
 chargerDestination();
 setInterval(chargerRuns, 5000); // suit l'avancement des runs
+suivreProgression();
+setInterval(suivreProgression, 2000); // panneau d'avancement en temps reel

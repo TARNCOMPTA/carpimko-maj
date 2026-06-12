@@ -14,7 +14,7 @@
 // d'un run a l'autre.
 
 import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { addDocument, addRun } from './db.js';
@@ -128,6 +128,7 @@ export async function scrapeClient(client, opts = {}) {
   page.setDefaultTimeout(navTimeout);
 
   const docsRecuperes = [];
+  let dejaPresents = 0;
 
   try {
     // ---- 1. Connexion ----
@@ -212,11 +213,18 @@ export async function scrapeClient(client, opts = {}) {
       await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
     } else {
       const motDoc = tousDocuments ? 'document(s)' : 'appel(s) de cotisations';
-      log(`${cibles.length} ${motDoc} a telecharger.`);
+      log(`${cibles.length} ${motDoc} detecte(s).`);
       for (const d of cibles) {
         if (!d.downloadHref) continue;
         const base = `${dateIso(d.date)}_${sanitize(d.nom || 'document')}`;
         const dest = resolve(clientDir, `${base}.pdf`);
+        // Deja telecharge lors d'un run precedent -> on ne le reprend pas.
+        if (existsSync(dest) && statSync(dest).size > 100) {
+          // S'assure quand meme que le document est reference en base.
+          addDocument(client.id, { libelle: `${d.date} — ${d.nom}`, fichier: dest, date_doc: dateIso(d.date) });
+          dejaPresents++;
+          continue;
+        }
         try {
           // Telechargement via requete HTTP authentifiee (cookies de session)
           const resp = await context.request.get(d.downloadHref, { timeout: navTimeout });
@@ -236,13 +244,18 @@ export async function scrapeClient(client, opts = {}) {
       }
     }
 
+    const motBilan = tousDocuments ? 'document(s)' : 'appel(s) de cotisations';
+    const bilan =
+      `${docsRecuperes.length} nouveau(x) ${motBilan} telecharge(s)` +
+      (dejaPresents > 0 ? `, ${dejaPresents} deja present(s) (ignore(s))` : '') +
+      ` — ${cibles.length} detecte(s)`;
     addRunSafe(client.id, {
-      statut: docsRecuperes.length > 0 || cibles.length === 0 ? 'succes' : 'echec',
-      message: `${docsRecuperes.length} ${tousDocuments ? 'document(s)' : 'appel(s) de cotisations'} recupere(s) sur ${cibles.length} detecte(s)`,
+      statut: docsRecuperes.length + dejaPresents > 0 || cibles.length === 0 ? 'succes' : 'echec',
+      message: bilan,
       nb_docs: docsRecuperes.length,
     });
-    log(`Termine : ${docsRecuperes.length} document(s) telecharge(s).`);
-    return { ok: true, docs: docsRecuperes };
+    log(`Termine : ${bilan}.`);
+    return { ok: true, docs: docsRecuperes, dejaPresents };
   } catch (err) {
     const shot = resolve(clientDir, `_debug_${Date.now()}.png`);
     await page.screenshot({ path: shot, fullPage: true }).catch(() => {});
