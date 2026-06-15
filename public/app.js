@@ -659,56 +659,19 @@ async function rafraichir() {
   await Promise.all([chargerClients(), chargerRuns()]);
 }
 
-// ---- Mise a jour ---------------------------------------------------------
+// ---- Version (pied de page) ----------------------------------------------
+// La mise a jour est desormais installee automatiquement au demarrage du serveur
+// (cote server.js) : plus de bandeau ni de bouton dans l'interface.
 
-async function verifierMaj() {
+async function afficherVersion() {
   try {
     const v = await api('/api/version');
     $('#pied-version').textContent = 'v' + v.version;
   } catch { /* ignore */ }
-  try {
-    const m = await api('/api/update/check');
-    if (m.updateAvailable) {
-      $('#maj-texte').textContent =
-        `Mise à jour disponible : v${m.latest}` + (m.notes ? ` — ${m.notes}` : '');
-      $('#maj-banner').hidden = false;
-    }
-  } catch { /* hors-ligne ou non configure : on ignore */ }
-}
-
-$('#maj-plustard').addEventListener('click', () => { $('#maj-banner').hidden = true; });
-
-$('#maj-install').addEventListener('click', async () => {
-  const btn = $('#maj-install');
-  btn.disabled = true;
-  btn.textContent = 'Installation…';
-  try {
-    await api('/api/update/apply', { method: 'POST' });
-    $('#maj-texte').textContent = 'Mise à jour en cours, redémarrage de l\'application…';
-    $('#maj-plustard').hidden = true;
-    attendreRedemarrage();
-  } catch (err) {
-    toast(err.message, 'err');
-    btn.disabled = false;
-    btn.textContent = 'Installer';
-  }
-});
-
-// Attend que le serveur soit ressuscite apres redemarrage, puis recharge la page.
-function attendreRedemarrage() {
-  let essais = 0;
-  const timer = setInterval(async () => {
-    essais++;
-    try {
-      const r = await fetch('/api/version', { cache: 'no-store' });
-      if (r.ok) { clearInterval(timer); location.reload(); }
-    } catch { /* serveur pas encore repondu */ }
-    if (essais > 60) { clearInterval(timer); toast('Le redémarrage prend du temps — recharge la page manuellement.', 'err'); }
-  }, 1500);
 }
 
 rafraichir();
-verifierMaj();
+afficherVersion();
 chargerDestination();
 setInterval(chargerRuns, 5000); // suit l'avancement des runs
 suivreProgression();

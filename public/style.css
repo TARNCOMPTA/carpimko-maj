@@ -354,19 +354,8 @@ dialog h3 { margin: 0 0 18px; font-size: 1.05rem; }
 @keyframes slidein { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ============================================================
-   Bandeau de mise a jour + pied de page
+   Pied de page
    ============================================================ */
-.maj-banner {
-  display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;
-  padding: 11px 18px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff; font-size: .9rem; font-weight: 600;
-}
-.maj-banner .btn.small { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.4); color: #fff; }
-.maj-banner .btn.small:hover { background: rgba(255,255,255,.28); }
-.maj-banner .btn.ghost { background: transparent; border-color: rgba(255,255,255,.35); }
-.maj-actions { display: flex; gap: 8px; }
-
 .pied {
   max-width: 1040px; margin: 0 auto; padding: 18px;
   display: flex; justify-content: space-between; align-items: center;

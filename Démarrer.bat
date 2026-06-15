@@ -56,5 +56,20 @@ echo Demarrage du serveur CARPIMKO...
 echo Ouvre ton navigateur sur http://localhost:3002
 echo (Laisse cette fenetre ouverte. Ferme-la pour arreter le serveur.)
 echo.
+
+:demarrer
+REM Appliquer une mise a jour preparee par le serveur avant son arret (staging = ..\app_update).
+if exist "..\app_update" (
+  echo Application de la mise a jour...
+  xcopy /E /Y /I "..\app_update\*" "." >nul
+  rmdir /S /Q "..\app_update"
+)
+if exist "..\restart.flag" del "..\restart.flag" >nul 2>&1
+
 "%NODE_EXE%" --disable-warning=ExperimentalWarning server.js
+
+REM Si le serveur a quitte pour installer une mise a jour, on l'applique et on relance.
+if exist "..\restart.flag" goto demarrer
+if exist "..\app_update" goto demarrer
+
 pause
