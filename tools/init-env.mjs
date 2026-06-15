@@ -29,7 +29,7 @@ if (existsSync(examplePath)) {
   contenu =
     `PORT=3002\r\n` +
     `MASTER_KEY=${cle}\r\n` +
-    `HEADLESS=false\r\n` +
+    `HEADLESS=true\r\n` +
     `CARPIMKO_LOGIN_URL=https://www2.carpimko.com/Comptes/Connexion?ReturnUrl=%2F\r\n` +
     `NAV_TIMEOUT=45000\r\n` +
     `TOUS_DOCUMENTS=false\r\n`;
