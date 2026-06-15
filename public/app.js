@@ -30,14 +30,29 @@ function toast(msg, type = '') {
 
 // ---- Clients -------------------------------------------------------------
 
+let tousClients = [];          // liste complete (source de la pagination)
+let pageClients = 1;           // page courante
+const CLIENTS_PAR_PAGE = 25;   // nombre de clients affiches par page
+
 async function chargerClients() {
-  const clients = await api('/api/clients');
+  tousClients = await api('/api/clients');
+  afficherPageClients();
+}
+
+// Affiche la page courante de la liste des clients + met a jour la pagination.
+function afficherPageClients() {
   const tbody = $('#table-clients tbody');
   tbody.innerHTML = '';
-  $('#table-clients').hidden = clients.length === 0;
-  $('.vide').hidden = clients.length !== 0;
+  $('#table-clients').hidden = tousClients.length === 0;
+  $('.vide').hidden = tousClients.length !== 0;
 
-  for (const c of clients) {
+  const nbPages = Math.max(1, Math.ceil(tousClients.length / CLIENTS_PAR_PAGE));
+  if (pageClients > nbPages) pageClients = nbPages;
+  if (pageClients < 1) pageClients = 1;
+  const debut = (pageClients - 1) * CLIENTS_PAR_PAGE;
+  const aAfficher = tousClients.slice(debut, debut + CLIENTS_PAR_PAGE);
+
+  for (const c of aAfficher) {
     const tr = document.createElement('tr');
     const verrou = c.verrouille
       ? `<span class="badge err lock" title="${esc(c.dernier_message || 'Mot de passe refusé')}">🔒 verrouillé</span>`
@@ -56,7 +71,25 @@ async function chargerClients() {
       </div></td>`;
     tbody.appendChild(tr);
   }
+
+  // Controles de pagination (masques s'il n'y a qu'une page)
+  const pag = $('#pagination-clients');
+  if (pag) {
+    pag.hidden = tousClients.length <= CLIENTS_PAR_PAGE;
+    $('#pag-info').textContent = `Page ${pageClients} / ${nbPages} — ${tousClients.length} client(s)`;
+    $('#pag-prev').disabled = pageClients <= 1;
+    $('#pag-next').disabled = pageClients >= nbPages;
+  }
 }
+
+function allerPageClients(delta) {
+  pageClients += delta;
+  afficherPageClients();
+  $('#table-clients').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('#pag-prev').addEventListener('click', () => allerPageClients(-1));
+$('#pag-next').addEventListener('click', () => allerPageClients(1));
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -597,6 +630,7 @@ $('#btn-scrape-all').addEventListener('click', async (e) => {
 let progressVisible = false;   // un suivi est affiche
 let progressMasque = false;    // l'utilisateur a masque le bilan termine
 let dernierDemarrage = null;   // pour re-afficher quand une nouvelle recuperation demarre
+let recupEnCours = false;      // vrai tant qu'une recuperation tourne (pour detecter la fin)
 
 async function suivreProgression() {
   let p;
@@ -608,6 +642,16 @@ async function suivreProgression() {
   if (p.demarre_le && p.demarre_le !== dernierDemarrage) {
     dernierDemarrage = p.demarre_le;
     progressMasque = false;
+  }
+
+  // Fin de recuperation (transition "en cours" -> "termine") : on rafraichit les
+  // tableaux (compteurs de documents, dernier run, historique) SANS recharger la page,
+  // pour ne pas perdre la position ni un formulaire en cours.
+  if (p.actif) {
+    recupEnCours = true;
+  } else if (recupEnCours) {
+    recupEnCours = false;
+    rafraichir();
   }
 
   const aMontrer = (p.actif || (p.fini_le && p.resultats.length > 0)) && !progressMasque;

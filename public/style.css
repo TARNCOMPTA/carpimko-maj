@@ -354,6 +354,16 @@ dialog h3 { margin: 0 0 18px; font-size: 1.05rem; }
 @keyframes slidein { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* ============================================================
+   Pagination de la liste des clients
+   ============================================================ */
+.pagination {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 14px;
+}
+.pagination .pag-info { font-size: .9rem; font-weight: 600; opacity: .85; }
+.pagination .btn[disabled] { opacity: .45; cursor: default; }
+
+/* ============================================================
    Pied de page
    ============================================================ */
 .pied {
