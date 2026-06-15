@@ -56,6 +56,7 @@
 
     <nav class="tabs" role="tablist">
       <button type="button" class="tab-btn active" data-tab="clients" role="tab">Clients</button>
+      <button type="button" class="tab-btn" data-tab="documents" role="tab">Documents</button>
       <button type="button" class="tab-btn" data-tab="parametres" role="tab">Paramètres</button>
     </nav>
 
@@ -117,6 +118,25 @@
         <h2>Historique des récupérations</h2>
         <pre class="progress-log histo-log" id="histo-log"></pre>
         <p class="vide-histo" hidden>Aucune récupération pour l'instant.</p>
+      </section>
+    </div>
+
+    <div class="tab-pane" id="tab-documents" hidden>
+      <section class="panel">
+        <h2>Tous les documents</h2>
+        <p class="aide">Documents récupérés, classés du plus récent au plus ancien selon la <strong>date d'émission CARPIMKO</strong>.</p>
+        <table id="table-docs">
+          <thead>
+            <tr><th>Date d'émission</th><th>Client</th><th>Document</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="pagination" id="pagination-docs" hidden>
+          <button type="button" class="btn small" id="pag-docs-prev">‹ Précédent</button>
+          <span class="pag-info" id="pag-docs-info"></span>
+          <button type="button" class="btn small" id="pag-docs-next">Suivant ›</button>
+        </div>
+        <p class="vide" id="vide-docs-all" hidden>Aucun document récupéré pour l'instant.</p>
       </section>
     </div>
 

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import {
   listClients, getClient, getClientCredentials, createClient, updateClient,
-  deleteClient, listDocuments, listRuns, importClients, clientVerrouille,
+  deleteClient, listDocuments, listAllDocuments, listRuns, importClients, clientVerrouille,
   getSetting, setSetting,
 } from './src/db.js';
 import { spawn } from 'node:child_process';
@@ -94,6 +94,11 @@ app.delete('/api/clients/:id', (req, res) => {
 app.get('/api/clients/:id/documents', (req, res) => {
   if (!getClient(Number(req.params.id))) return res.status(404).json({ error: 'Client introuvable.' });
   res.json(listDocuments(Number(req.params.id)));
+});
+
+// Tous les documents (tous clients), du plus recent au plus ancien (date d'emission).
+app.get('/api/documents', (req, res) => {
+  res.json(listAllDocuments());
 });
 
 // ---- Telechargement d'un document recupere -------------------------------

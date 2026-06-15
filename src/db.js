@@ -219,6 +219,17 @@ export function listDocuments(client_id) {
   `).all(client_id);
 }
 
+// Tous les documents (tous clients confondus), du plus recent au plus ancien
+// selon la DATE DU DOCUMENT (date d'emission CARPIMKO). Les documents sans date
+// connue passent en dernier (departage par date de telechargement).
+export function listAllDocuments() {
+  return db.prepare(`
+    SELECT d.id, d.libelle, d.fichier, d.date_doc, d.recupere_le, d.client_id, c.nom AS client_nom
+    FROM documents d LEFT JOIN clients c ON c.id = d.client_id
+    ORDER BY (d.date_doc IS NULL), d.date_doc DESC, d.recupere_le DESC, d.id DESC
+  `).all();
+}
+
 // ---- Runs ----------------------------------------------------------------
 
 export function addRun(client_id, { statut, message, nb_docs }) {

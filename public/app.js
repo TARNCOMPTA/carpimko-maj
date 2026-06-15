@@ -701,6 +701,59 @@ $('#progress-masquer').addEventListener('click', () => {
   $('#panel-progress').hidden = true;
 });
 
+// ---- Documents (onglet global) -------------------------------------------
+
+let tousDocs = [];
+let pageDocs = 1;
+const DOCS_PAR_PAGE = 50;
+
+async function chargerDocuments() {
+  tousDocs = await api('/api/documents');
+  afficherPageDocs();
+}
+
+function afficherPageDocs() {
+  const tbody = $('#table-docs tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  $('#table-docs').hidden = tousDocs.length === 0;
+  $('#vide-docs-all').hidden = tousDocs.length !== 0;
+
+  const nbPages = Math.max(1, Math.ceil(tousDocs.length / DOCS_PAR_PAGE));
+  if (pageDocs > nbPages) pageDocs = nbPages;
+  if (pageDocs < 1) pageDocs = 1;
+  const debut = (pageDocs - 1) * DOCS_PAR_PAGE;
+
+  for (const d of tousDocs.slice(debut, debut + DOCS_PAR_PAGE)) {
+    const dateAff = d.date_doc ? new Date(d.date_doc + 'T00:00:00').toLocaleDateString('fr-FR') : '—';
+    const lib = d.libelle || (d.fichier ? d.fichier.split(/[\\/]/).pop() : '—');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${esc(dateAff)}</td>
+      <td>${esc(d.client_nom || '—')}</td>
+      <td>${esc(lib)}</td>
+      <td><a class="btn small primary" href="/api/documents/${d.id}/file">Télécharger</a></td>`;
+    tbody.appendChild(tr);
+  }
+
+  const pag = $('#pagination-docs');
+  if (pag) {
+    pag.hidden = tousDocs.length <= DOCS_PAR_PAGE;
+    $('#pag-docs-info').textContent = `Page ${pageDocs} / ${nbPages} — ${tousDocs.length} document(s)`;
+    $('#pag-docs-prev').disabled = pageDocs <= 1;
+    $('#pag-docs-next').disabled = pageDocs >= nbPages;
+  }
+}
+
+function allerPageDocs(delta) {
+  pageDocs += delta;
+  afficherPageDocs();
+  $('#table-docs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+$('#pag-docs-prev').addEventListener('click', () => allerPageDocs(-1));
+$('#pag-docs-next').addEventListener('click', () => allerPageDocs(1));
+
 // ---- Onglets -------------------------------------------------------------
 
 function activerOnglet(nom) {
@@ -715,7 +768,7 @@ activerOnglet('clients'); // ouverture sur l'onglet Clients par defaut
 // ---- Rafraichissement ----------------------------------------------------
 
 async function rafraichir() {
-  await Promise.all([chargerClients(), chargerRuns()]);
+  await Promise.all([chargerClients(), chargerRuns(), chargerDocuments()]);
 }
 
 // ---- Version (pied de page) ----------------------------------------------
