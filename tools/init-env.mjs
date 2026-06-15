@@ -27,7 +27,7 @@ if (existsSync(examplePath)) {
   );
 } else {
   contenu =
-    `PORT=3000\r\n` +
+    `PORT=3002\r\n` +
     `MASTER_KEY=${cle}\r\n` +
     `HEADLESS=false\r\n` +
     `CARPIMKO_LOGIN_URL=https://www2.carpimko.com/Comptes/Connexion?ReturnUrl=%2F\r\n` +

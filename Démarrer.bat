@@ -53,7 +53,7 @@ if errorlevel 1 (
 
 echo.
 echo Demarrage du serveur CARPIMKO...
-echo Ouvre ton navigateur sur http://localhost:3000
+echo Ouvre ton navigateur sur http://localhost:3002
 echo (Laisse cette fenetre ouverte. Ferme-la pour arreter le serveur.)
 echo.
 "%NODE_EXE%" --disable-warning=ExperimentalWarning server.js

@@ -31,7 +31,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 npm start
 ```
 
-Puis ouvrir <http://localhost:3000>.
+Puis ouvrir <http://localhost:3002>.
 
 ## Parcours automatisé (vérifié sur compte réel le 10/06/2026)
 
