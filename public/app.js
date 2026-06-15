@@ -710,7 +710,7 @@ function activerOnglet(nom) {
 document.querySelectorAll('.tab-btn').forEach((b) => {
   b.addEventListener('click', () => activerOnglet(b.dataset.tab));
 });
-activerOnglet('parametres'); // ouverture sur l'onglet Parametres par defaut
+activerOnglet('clients'); // ouverture sur l'onglet Clients par defaut
 
 // ---- Rafraichissement ----------------------------------------------------
 

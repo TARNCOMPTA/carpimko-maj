@@ -370,6 +370,7 @@ dialog h3 { margin: 0 0 18px; font-size: 1.05rem; }
 .tab-btn:hover { color: var(--ink); }
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab-pane { display: flex; flex-direction: column; gap: 22px; }
+.tab-pane[hidden] { display: none; }   /* sinon le display:flex ci-dessus annule l'attribut hidden */
 
 /* Journal de l'historique : meme rendu que le journal d'avancement, un peu plus haut. */
 .histo-log { max-height: 360px; }
