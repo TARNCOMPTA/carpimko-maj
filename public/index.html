@@ -54,104 +54,111 @@
       </details>
     </section>
 
-    <section class="panel">
-      <h2>Ajouter un client</h2>
-      <form id="form-client" class="form-grid" autocomplete="off">
-        <input type="hidden" name="id" />
-        <label>Nom du client
-          <input name="nom" required placeholder="Ex : DUPONT Marie" />
-        </label>
-        <label>Identifiant CARPIMKO
-          <input name="login" required placeholder="Identifiant de connexion" />
-        </label>
-        <label>Mot de passe
-          <input name="password" type="password" placeholder="Mot de passe (laisser vide = inchangé)" />
-        </label>
-        <label class="full">Notes (optionnel)
-          <input name="notes" placeholder="N° adhérent, remarques…" />
-        </label>
-        <label class="full">Dossier d'enregistrement de ce client (optionnel)
-          <span class="champ-dossier">
-            <input name="dossier" placeholder="Vide = utilise le dossier global ci-dessous" />
-            <button type="button" class="btn" data-pick="dossier">Parcourir…</button>
-          </span>
-        </label>
-        <div class="form-actions full">
-          <button type="submit" class="btn primary" id="btn-submit">Enregistrer</button>
-          <button type="button" class="btn" id="btn-cancel" hidden>Annuler</button>
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab-btn" data-tab="clients" role="tab">Clients</button>
+      <button type="button" class="tab-btn active" data-tab="parametres" role="tab">Paramètres</button>
+    </nav>
+
+    <div class="tab-pane" id="tab-clients" hidden>
+      <section class="panel">
+        <h2>Ajouter un client</h2>
+        <form id="form-client" class="form-grid" autocomplete="off">
+          <input type="hidden" name="id" />
+          <label>Nom du client
+            <input name="nom" required placeholder="Ex : DUPONT Marie" />
+          </label>
+          <label>Identifiant CARPIMKO
+            <input name="login" required placeholder="Identifiant de connexion" />
+          </label>
+          <label>Mot de passe
+            <input name="password" type="password" placeholder="Mot de passe (laisser vide = inchangé)" />
+          </label>
+          <label class="full">Notes (optionnel)
+            <input name="notes" placeholder="N° adhérent, remarques…" />
+          </label>
+          <label class="full">Dossier d'enregistrement de ce client (optionnel)
+            <span class="champ-dossier">
+              <input name="dossier" placeholder="Vide = utilise le dossier global ci-dessous" />
+              <button type="button" class="btn" data-pick="dossier">Parcourir…</button>
+            </span>
+          </label>
+          <div class="form-actions full">
+            <button type="submit" class="btn primary" id="btn-submit">Enregistrer</button>
+            <button type="button" class="btn" id="btn-cancel" hidden>Annuler</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Clients</h2>
+          <label class="toggle-docs" title="Si coché, la récupération télécharge aussi les attestations et autres documents, pas seulement les appels de cotisations.">
+            <input type="checkbox" id="toggle-tous-docs" />
+            Inclure tous les documents (attestations…)
+          </label>
         </div>
-      </form>
-    </section>
+        <table id="table-clients">
+          <thead>
+            <tr>
+              <th>Nom</th><th>Identifiant</th><th>Docs</th><th>Dernier run</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="pagination" id="pagination-clients" hidden>
+          <button type="button" class="btn small" id="pag-prev">‹ Précédent</button>
+          <span class="pag-info" id="pag-info"></span>
+          <button type="button" class="btn small" id="pag-next">Suivant ›</button>
+        </div>
+        <p class="vide" hidden>Aucun client enregistré pour l'instant.</p>
+      </section>
 
-    <section class="panel">
-      <h2>Dossier d'enregistrement</h2>
-      <p class="aide">
-        Où ranger les appels de cotisations téléchargés. Un <strong>sous-dossier par client</strong> y est créé
-        automatiquement. Laisser vide = dossier interne de l'application. Un client peut aussi avoir son
-        propre dossier (dans sa fiche).
-      </p>
-      <div class="champ-dossier">
-        <input id="dest-global" placeholder="Ex : D:\Clients\Cotisations  (vide = dossier interne)" />
-        <button type="button" class="btn" id="pick-global">Parcourir…</button>
-        <button type="button" class="btn primary" id="save-global">Enregistrer</button>
-      </div>
-    </section>
+      <section class="panel">
+        <h2>Historique des récupérations</h2>
+        <pre class="progress-log histo-log" id="histo-log"></pre>
+        <p class="vide-histo" hidden>Aucune récupération pour l'instant.</p>
+      </section>
+    </div>
 
-    <section class="panel">
-      <h2>Import en masse</h2>
-      <p class="aide">
-        Importe plusieurs clients d'un coup depuis un fichier <strong>CSV</strong> (export Excel)
-        ou en <strong>collant</strong> directement depuis Excel.
-        Colonnes attendues : <code>nom</code>, <code>numéro de dossier</code>, <code>mot de passe</code>, <code>notes</code> (optionnel).
-        <a href="#" id="lien-modele">Télécharger un modèle CSV</a>
-      </p>
-      <div class="import-zone">
-        <label class="btn">
-          Choisir un fichier CSV…
-          <input type="file" id="import-file" accept=".csv,.txt,.tsv" hidden />
-        </label>
-        <span class="sep">ou</span>
-        <span class="aide">colle tes lignes ci-dessous :</span>
-      </div>
-      <textarea id="import-text" rows="5" placeholder="nom;numéro de dossier;mot de passe;notes&#10;DUPONT Marie;1234567;motdepasse;&#10;MARTIN Paul;7654321;autremdp;kiné"></textarea>
-      <div id="import-preview" class="import-preview" hidden></div>
-      <div class="form-actions">
-        <button type="button" class="btn primary" id="btn-import" disabled>Importer</button>
-        <button type="button" class="btn" id="btn-import-reset">Effacer</button>
-      </div>
-    </section>
+    <div class="tab-pane" id="tab-parametres">
+      <section class="panel">
+        <h2>Dossier d'enregistrement</h2>
+        <p class="aide">
+          Où ranger les appels de cotisations téléchargés. Un <strong>sous-dossier par client</strong> y est créé
+          automatiquement. Laisser vide = dossier interne de l'application. Un client peut aussi avoir son
+          propre dossier (dans sa fiche).
+        </p>
+        <div class="champ-dossier">
+          <input id="dest-global" placeholder="Ex : D:\Clients\Cotisations  (vide = dossier interne)" />
+          <button type="button" class="btn" id="pick-global">Parcourir…</button>
+          <button type="button" class="btn primary" id="save-global">Enregistrer</button>
+        </div>
+      </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Clients</h2>
-        <label class="toggle-docs" title="Si coché, la récupération télécharge aussi les attestations et autres documents, pas seulement les appels de cotisations.">
-          <input type="checkbox" id="toggle-tous-docs" />
-          Inclure tous les documents (attestations…)
-        </label>
-      </div>
-      <table id="table-clients">
-        <thead>
-          <tr>
-            <th>Nom</th><th>Identifiant</th><th>Docs</th><th>Dernier run</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="pagination" id="pagination-clients" hidden>
-        <button type="button" class="btn small" id="pag-prev">‹ Précédent</button>
-        <span class="pag-info" id="pag-info"></span>
-        <button type="button" class="btn small" id="pag-next">Suivant ›</button>
-      </div>
-      <p class="vide" hidden>Aucun client enregistré pour l'instant.</p>
-    </section>
-
-    <section class="panel">
-      <h2>Historique des récupérations</h2>
-      <table id="table-runs">
-        <thead><tr><th>Date</th><th>Client</th><th>Statut</th><th>Docs</th><th>Message</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </section>
+      <section class="panel">
+        <h2>Import en masse</h2>
+        <p class="aide">
+          Importe plusieurs clients d'un coup depuis un fichier <strong>CSV</strong> (export Excel)
+          ou en <strong>collant</strong> directement depuis Excel.
+          Colonnes attendues : <code>nom</code>, <code>numéro de dossier</code>, <code>mot de passe</code>, <code>notes</code> (optionnel).
+          <a href="#" id="lien-modele">Télécharger un modèle CSV</a>
+        </p>
+        <div class="import-zone">
+          <label class="btn">
+            Choisir un fichier CSV…
+            <input type="file" id="import-file" accept=".csv,.txt,.tsv" hidden />
+          </label>
+          <span class="sep">ou</span>
+          <span class="aide">colle tes lignes ci-dessous :</span>
+        </div>
+        <textarea id="import-text" rows="5" placeholder="nom;numéro de dossier;mot de passe;notes&#10;DUPONT Marie;1234567;motdepasse;&#10;MARTIN Paul;7654321;autremdp;kiné"></textarea>
+        <div id="import-preview" class="import-preview" hidden></div>
+        <div class="form-actions">
+          <button type="button" class="btn primary" id="btn-import" disabled>Importer</button>
+          <button type="button" class="btn" id="btn-import-reset">Effacer</button>
+        </div>
+      </section>
+    </div>
   </main>
 
   <!-- Fenetre d'export ZIP -->

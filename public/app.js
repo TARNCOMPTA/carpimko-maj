@@ -590,20 +590,24 @@ async function ouvrirDocs(id, nom) {
 
 async function chargerRuns() {
   const runs = await api('/api/runs');
-  const tbody = $('#table-runs tbody');
-  tbody.innerHTML = '';
-  for (const r of runs) {
-    const cls = r.statut === 'succes' ? 'ok' : 'err';
-    const libelle = { succes: 'succès', echec: 'échec', echec_mdp: '🔒 mot de passe' }[r.statut] || r.statut;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${new Date(r.lance_le + 'Z').toLocaleString('fr-FR')}</td>
-      <td>${esc(r.client_nom || '—')}</td>
-      <td><span class="badge ${cls}">${libelle}</span></td>
-      <td>${r.nb_docs}</td>
-      <td>${esc(r.message || '')}</td>`;
-    tbody.appendChild(tr);
-  }
+  const log = $('#histo-log');
+  if (!log) return;
+  const vide = $('.vide-histo');
+  if (vide) vide.hidden = runs.length !== 0;
+  log.hidden = runs.length === 0;
+
+  // Format "journal" (monospace), comme le journal du panneau d'avancement.
+  const sym = { succes: '✔', echec: '✘', echec_mdp: '🔒' };
+  log.textContent = runs
+    .map((r) => {
+      const date = new Date(r.lance_le + 'Z').toLocaleString('fr-FR');
+      const s = sym[r.statut] || '•';
+      const nom = r.client_nom || '—';
+      const docs = `${r.nb_docs} doc(s)`;
+      const msg = r.message ? `  —  ${r.message}` : '';
+      return `${date}   ${s} ${nom}   ${docs}${msg}`;
+    })
+    .join('\n');
 }
 
 // ---- Tout récupérer ------------------------------------------------------
@@ -696,6 +700,17 @@ $('#progress-masquer').addEventListener('click', () => {
   progressMasque = true;
   $('#panel-progress').hidden = true;
 });
+
+// ---- Onglets -------------------------------------------------------------
+
+function activerOnglet(nom) {
+  document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === nom));
+  document.querySelectorAll('.tab-pane').forEach((p) => { p.hidden = p.id !== `tab-${nom}`; });
+}
+document.querySelectorAll('.tab-btn').forEach((b) => {
+  b.addEventListener('click', () => activerOnglet(b.dataset.tab));
+});
+activerOnglet('parametres'); // ouverture sur l'onglet Parametres par defaut
 
 // ---- Rafraichissement ----------------------------------------------------
 
