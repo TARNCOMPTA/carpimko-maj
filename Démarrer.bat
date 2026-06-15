@@ -52,24 +52,13 @@ if errorlevel 1 (
 )
 
 echo.
-echo Demarrage du serveur CARPIMKO...
-echo Ouvre ton navigateur sur http://localhost:3002
-echo (Laisse cette fenetre ouverte. Ferme-la pour arreter le serveur.)
-echo.
+echo Demarrage de CARPIMKO en arriere-plan...
+echo Le navigateur va s'ouvrir sur http://localhost:3002
+echo (Pour arreter le serveur : double-clic sur Quitter.bat)
 
-:demarrer
-REM Appliquer une mise a jour preparee par le serveur avant son arret (staging = ..\app_update).
-if exist "..\app_update" (
-  echo Application de la mise a jour...
-  xcopy /E /Y /I "..\app_update\*" "." >nul
-  rmdir /S /Q "..\app_update"
-)
-if exist "..\restart.flag" del "..\restart.flag" >nul 2>&1
+REM Lance le serveur SANS fenetre visible + ouverture du navigateur, via le script VBS.
+REM La mise a jour automatique et la boucle de redemarrage sont gerees dans le VBS.
+start "" wscript.exe "%~dp0_serveur-cache.vbs"
 
-"%NODE_EXE%" --disable-warning=ExperimentalWarning server.js
-
-REM Si le serveur a quitte pour installer une mise a jour, on l'applique et on relance.
-if exist "..\restart.flag" goto demarrer
-if exist "..\app_update" goto demarrer
-
-pause
+REM Cette fenetre se ferme aussitot : l'application tourne en arriere-plan.
+exit /b 0
