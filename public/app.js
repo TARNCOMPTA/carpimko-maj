@@ -32,6 +32,7 @@ function toast(msg, type = '') {
 
 let tousClients = [];          // liste complete (source de la pagination)
 let pageClients = 1;           // page courante
+let filtreClients = '';        // texte de la recherche rapide
 const CLIENTS_PAR_PAGE = 25;   // nombre de clients affiches par page
 
 async function chargerClients() {
@@ -39,18 +40,30 @@ async function chargerClients() {
   afficherPageClients();
 }
 
+// Recherche rapide : filtre par nom, identifiant et notes (insensible casse/accents).
+function clientsAffiches() {
+  if (!filtreClients) return tousClients;
+  const q = norm(filtreClients);
+  return tousClients.filter((c) => norm(`${c.nom} ${c.login} ${c.notes || ''}`).includes(q));
+}
+
 // Affiche la page courante de la liste des clients + met a jour la pagination.
 function afficherPageClients() {
+  const liste = clientsAffiches();
   const tbody = $('#table-clients tbody');
   tbody.innerHTML = '';
-  $('#table-clients').hidden = tousClients.length === 0;
-  $('.vide').hidden = tousClients.length !== 0;
+  $('#table-clients').hidden = liste.length === 0;
+  const vide = $('.vide');
+  if (vide) {
+    vide.hidden = liste.length !== 0;
+    vide.textContent = filtreClients ? 'Aucun client ne correspond à la recherche.' : "Aucun client enregistré pour l'instant.";
+  }
 
-  const nbPages = Math.max(1, Math.ceil(tousClients.length / CLIENTS_PAR_PAGE));
+  const nbPages = Math.max(1, Math.ceil(liste.length / CLIENTS_PAR_PAGE));
   if (pageClients > nbPages) pageClients = nbPages;
   if (pageClients < 1) pageClients = 1;
   const debut = (pageClients - 1) * CLIENTS_PAR_PAGE;
-  const aAfficher = tousClients.slice(debut, debut + CLIENTS_PAR_PAGE);
+  const aAfficher = liste.slice(debut, debut + CLIENTS_PAR_PAGE);
 
   for (const c of aAfficher) {
     const tr = document.createElement('tr');
@@ -75,8 +88,8 @@ function afficherPageClients() {
   // Controles de pagination (masques s'il n'y a qu'une page)
   const pag = $('#pagination-clients');
   if (pag) {
-    pag.hidden = tousClients.length <= CLIENTS_PAR_PAGE;
-    $('#pag-info').textContent = `Page ${pageClients} / ${nbPages} — ${tousClients.length} client(s)`;
+    pag.hidden = liste.length <= CLIENTS_PAR_PAGE;
+    $('#pag-info').textContent = `Page ${pageClients} / ${nbPages} — ${liste.length} client(s)`;
     $('#pag-prev').disabled = pageClients <= 1;
     $('#pag-next').disabled = pageClients >= nbPages;
   }
@@ -90,9 +103,19 @@ function allerPageClients(delta) {
 
 $('#pag-prev').addEventListener('click', () => allerPageClients(-1));
 $('#pag-next').addEventListener('click', () => allerPageClients(1));
+$('#search-clients').addEventListener('input', (e) => {
+  filtreClients = e.target.value.trim();
+  pageClients = 1;
+  afficherPageClients();
+});
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+// Normalise une chaine pour une recherche insensible a la casse et aux accents.
+function norm(s) {
+  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 // Option "inclure tous les documents" (memorisee).
@@ -705,6 +728,7 @@ $('#progress-masquer').addEventListener('click', () => {
 
 let tousDocs = [];
 let pageDocs = 1;
+let filtreDocs = '';
 const DOCS_PAR_PAGE = 50;
 
 async function chargerDocuments() {
@@ -712,19 +736,31 @@ async function chargerDocuments() {
   afficherPageDocs();
 }
 
+// Recherche rapide documents : client, libelle, fichier, date (insensible casse/accents).
+function docsAffiches() {
+  if (!filtreDocs) return tousDocs;
+  const q = norm(filtreDocs);
+  return tousDocs.filter((d) => norm(`${d.client_nom || ''} ${d.libelle || ''} ${d.fichier || ''} ${d.date_doc || ''}`).includes(q));
+}
+
 function afficherPageDocs() {
+  const liste = docsAffiches();
   const tbody = $('#table-docs tbody');
   if (!tbody) return;
   tbody.innerHTML = '';
-  $('#table-docs').hidden = tousDocs.length === 0;
-  $('#vide-docs-all').hidden = tousDocs.length !== 0;
+  $('#table-docs').hidden = liste.length === 0;
+  const vide = $('#vide-docs-all');
+  if (vide) {
+    vide.hidden = liste.length !== 0;
+    vide.textContent = filtreDocs ? 'Aucun document ne correspond à la recherche.' : 'Aucun document récupéré pour l\'instant.';
+  }
 
-  const nbPages = Math.max(1, Math.ceil(tousDocs.length / DOCS_PAR_PAGE));
+  const nbPages = Math.max(1, Math.ceil(liste.length / DOCS_PAR_PAGE));
   if (pageDocs > nbPages) pageDocs = nbPages;
   if (pageDocs < 1) pageDocs = 1;
   const debut = (pageDocs - 1) * DOCS_PAR_PAGE;
 
-  for (const d of tousDocs.slice(debut, debut + DOCS_PAR_PAGE)) {
+  for (const d of liste.slice(debut, debut + DOCS_PAR_PAGE)) {
     const dateAff = d.date_doc ? new Date(d.date_doc + 'T00:00:00').toLocaleDateString('fr-FR') : '—';
     const lib = d.libelle || (d.fichier ? d.fichier.split(/[\\/]/).pop() : '—');
     const tr = document.createElement('tr');
@@ -738,8 +774,8 @@ function afficherPageDocs() {
 
   const pag = $('#pagination-docs');
   if (pag) {
-    pag.hidden = tousDocs.length <= DOCS_PAR_PAGE;
-    $('#pag-docs-info').textContent = `Page ${pageDocs} / ${nbPages} — ${tousDocs.length} document(s)`;
+    pag.hidden = liste.length <= DOCS_PAR_PAGE;
+    $('#pag-docs-info').textContent = `Page ${pageDocs} / ${nbPages} — ${liste.length} document(s)`;
     $('#pag-docs-prev').disabled = pageDocs <= 1;
     $('#pag-docs-next').disabled = pageDocs >= nbPages;
   }
@@ -753,6 +789,11 @@ function allerPageDocs(delta) {
 
 $('#pag-docs-prev').addEventListener('click', () => allerPageDocs(-1));
 $('#pag-docs-next').addEventListener('click', () => allerPageDocs(1));
+$('#search-docs').addEventListener('input', (e) => {
+  filtreDocs = e.target.value.trim();
+  pageDocs = 1;
+  afficherPageDocs();
+});
 
 // ---- Onglets -------------------------------------------------------------
 

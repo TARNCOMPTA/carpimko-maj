@@ -376,6 +376,19 @@ dialog h3 { margin: 0 0 18px; font-size: 1.05rem; }
 .histo-log { max-height: 360px; }
 
 /* ============================================================
+   Recherche rapide
+   ============================================================ */
+.quick-search {
+  width: 100%; margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  font-size: .92rem; font-family: inherit; color: var(--ink); background: var(--panel-2);
+  transition: border-color .15s, box-shadow .15s;
+}
+.quick-search::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
+.quick-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+
+/* ============================================================
    Pagination de la liste des clients
    ============================================================ */
 .pagination {
